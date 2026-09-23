@@ -6,8 +6,9 @@ Foldables are the first mainstream device where one browser changes viewport mid
 can pass every normal responsive test and still fail the moment the device unfolds, because the
 fold is a *resize without a reload* — no navigation, no fresh render, just a different box.
 
-This is the engine behind [Fold Ready](https://foldready.com), extracted as a standalone module.
-It has a CLI, a library API and JSON output, and it does not depend on the web app it was built for.
+This is the engine behind Fold Ready, a website-fix service I am building, extracted as a
+standalone module. It has a CLI, a library API and JSON output, and it does not depend on the web
+app it was built for.
 
 ## Install
 
