@@ -47,10 +47,14 @@ function isPrivateV4(ip: string): boolean {
 
 function isPrivateV6(ip: string): boolean {
   const s = ip.toLowerCase();
-  if (s === '::' || s === '::1') return true;
-  if (s.startsWith('fe8') || s.startsWith('fe9') || s.startsWith('fea') || s.startsWith('feb')) return true; // link-local
-  if (s.startsWith('fc') || s.startsWith('fd')) return true; // unique local
+  if (s === '::' || s === '::1') return true; // unspecified, loopback
+  // IPv4-mapped (::ffff:a.b.c.d) is judged on the embedded v4 address. Any other
+  // mapped spelling (::ffff:0808:0808) is not parsed here, so it fails closed.
   if (s.startsWith('::ffff:')) return isPrivateV4(s.slice(7));
+  if (/^fe[89ab]/.test(s)) return true; // link-local fe80::/10
+  if (/^fe[cdef]/.test(s)) return true; // site-local fec0::/10, deprecated but still routed on some networks
+  if (/^f[cd]/.test(s)) return true; // unique local fc00::/7
+  if (/^ff/.test(s)) return true; // multicast ff00::/8, including ff02::1 all-nodes
   return false;
 }
 

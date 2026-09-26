@@ -1,0 +1,12 @@
+// The build config (tsconfig.json) emits from src/ only. This one type-checks the
+// tests as well, without emitting, so a type error in a test is still a failure.
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true,
+    "declaration": false,
+    "allowImportingTsExtensions": true
+  },
+  "include": ["src", "test"]
+}

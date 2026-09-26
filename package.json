@@ -18,7 +18,9 @@
   "scripts": {
     "build": "tsc -p .",
     "check": "tsx src/cli.ts",
-    "typecheck": "tsc --noEmit -p ."
+    "typecheck": "tsc --noEmit -p .",
+    "typecheck:test": "tsc -p tsconfig.test.json",
+    "test": "node --import tsx --test test/*.test.ts"
   },
   "dependencies": {
     "pixelmatch": "^6.0.0",
