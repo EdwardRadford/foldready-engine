@@ -1,14 +1,19 @@
 # foldready-engine
 
+[![CI](https://github.com/EdwardRadford/foldready-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/EdwardRadford/foldready-engine/actions/workflows/ci.yml)
+
 Renders a website at the three screen sizes of a foldable phone and reports what breaks.
+
+**This is the rendering core of [foldready](https://github.com/EdwardRadford/foldready), a
+website-fix service I am building, extracted as a standalone module.** `src/` here is the app's
+`src/engine/`, so the two public repos deliberately overlap: nine of these eleven files are
+byte-identical to their copies there, about 1,500 of 1,640 lines. It is split out because the
+checker is worth having without the service around it — CLI, library API, JSON output, and no
+dependency on the web app or its hosting.
 
 Foldables are the first mainstream device where one browser changes viewport mid-session. A layout
 can pass every normal responsive test and still fail the moment the device unfolds, because the
 fold is a *resize without a reload* — no navigation, no fresh render, just a different box.
-
-This is the engine behind Fold Ready, a website-fix service I am building, extracted as a
-standalone module. It has a CLI, a library API and JSON output, and it does not depend on the web
-app it was built for.
 
 ## Install
 
@@ -54,8 +59,33 @@ disagree with the verdict.
   when the hardware ships and the real numbers are known.
 - **The URL guard is deliberate.** `src/url.ts` refuses credentials in URLs and, by default,
   localhost and private address ranges — a renderer that fetches arbitrary URLs on request is an
-  SSRF hole if you let it be one.
+  SSRF hole if you let it be one. It resolves the host first and checks the addresses DNS actually
+  returns, not just the string, and it fails closed on anything it cannot parse as an address.
+  `test/url.test.ts` is the proof: see below.
 - **No verdict without evidence.** Every result keeps the screenshot it was derived from.
+
+## Tests
+
+```bash
+npm ci
+npm test              # 18 tests over the URL guard, offline
+npm run typecheck     # src/
+npm run typecheck:test # src/ and test/
+```
+
+The tests cover `src/url.ts`, because that module is the only thing between a public check
+endpoint and the machine's own network. They are table-driven and run offline — every case is
+string work or an IP literal, so no test performs a lookup or opens a browser. What they pin down:
+scheme and credential rejection; each reserved IPv4 range including carrier-grade NAT
+(100.64/10), link-local (169.254/16, where cloud metadata lives), benchmarking (198.18/15) and
+multicast, with the addresses immediately either side of each range asserted public; IPv6
+loopback, link-local, unique-local and multicast; IPv4-mapped IPv6 (`::ffff:127.0.0.1` must be
+refused like `127.0.0.1`); and fail-closed behaviour on input that is not an address at all.
+
+Writing them found a real hole: IPv6 multicast (`ff00::/8`, including `ff02::1`, all nodes on the
+link) and site-local (`fec0::/10`) were being treated as public. Both are blocked now.
+
+GitHub Actions runs the type checks and the tests on every push and pull request.
 
 ## Licence
 
